@@ -2,10 +2,7 @@ pipeline {
     agent any
 
     environment {
-		PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
-        // AWS credentials ID configured in Jenkins
-        AWS_CREDENTIALS = credentials('aws-credentials')
-        // Your Terraform directory path in project
+        PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
         TF_DIR = './terraform'
     }
 
@@ -39,7 +36,10 @@ pipeline {
             steps {
                 echo 'Planning Terraform infrastructure changes...'
                 dir("${TF_DIR}") {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                    withCredentials([
+                        string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    ]) {
                         sh 'terraform plan -out=tfplan'
                     }
                 }
@@ -51,7 +51,10 @@ pipeline {
                 input message: 'Apply Terraform changes? (Confirm manually)'
                 echo 'Applying Terraform plan...'
                 dir("${TF_DIR}") {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                    withCredentials([
+                        string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    ]) {
                         sh 'terraform apply -auto-approve tfplan'
                     }
                 }
