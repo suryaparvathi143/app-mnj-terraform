@@ -2,42 +2,29 @@ pipeline {
     agent any
 
     environment {
-		PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
-        // AWS credentials ID configured in Jenkins
+        PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
         AWS_CREDENTIALS = credentials('aws-credentials')
-        // Your Terraform directory path in project
         TF_DIR = './terraform'
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Check Terraform') {
             steps {
-                echo 'Cloning repository...'
-                git branch: 'main', url: 'https://github.com/suryaparvathi143/app-mnj-terraform.git'
+                sh 'echo Current PATH: $PATH'
+                sh 'terraform -version'
             }
         }
 
-        stage('Setup Terraform') {
+        stage('Terraform Init') {
             steps {
-                echo 'Initializing Terraform...'
                 dir("${TF_DIR}") {
                     sh 'terraform init'
                 }
             }
         }
 
-        stage('Validate Terraform') {
+        stage('Terraform Plan') {
             steps {
-                echo 'Validating Terraform code...'
-                dir("${TF_DIR}") {
-                    sh 'terraform validate'
-                }
-            }
-        }
-
-        stage('Plan Infrastructure') {
-            steps {
-                echo 'Planning Terraform infrastructure changes...'
                 dir("${TF_DIR}") {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
                         sh 'terraform plan -out=tfplan'
@@ -46,10 +33,9 @@ pipeline {
             }
         }
 
-        stage('Apply Infrastructure') {
+        stage('Terraform Apply') {
             steps {
-                input message: 'Apply Terraform changes? (Confirm manually)'
-                echo 'Applying Terraform plan...'
+                input message: 'Apply Terraform changes?'
                 dir("${TF_DIR}") {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
                         sh 'terraform apply -auto-approve tfplan'
@@ -61,7 +47,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Terraform infrastructure applied successfully!'
+            echo '✅ Terraform pipeline completed successfully!'
         }
         failure {
             echo '❌ Terraform pipeline failed!'
