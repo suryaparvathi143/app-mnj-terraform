@@ -18,7 +18,12 @@ pipeline {
             steps {
                 echo 'Initializing Terraform...'
                 dir("${TF_DIR}") {
-                    sh 'terraform init'
+                    withCredentials([
+                        string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    ]) {
+                        sh 'terraform init'
+                    }
                 }
             }
         }
@@ -27,7 +32,12 @@ pipeline {
             steps {
                 echo 'Validating Terraform code...'
                 dir("${TF_DIR}") {
-                    sh 'terraform validate'
+                    withCredentials([
+                        string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    ]) {
+                        sh 'terraform validate'
+                    }
                 }
             }
         }
