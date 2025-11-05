@@ -42,16 +42,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   queue {
     queue_arn = aws_sqs_queue.app_queue.arn
     events    = var.s3_events
-
-    # Optional filter (you can keep or remove this block)
-    filter {
-      key {
-        filter_rules {
-          name  = "suffix"
-          value = var.s3_filter_suffix
-        }
-      }
-    }
   }
 
   depends_on = [aws_sqs_queue_policy.allow_s3]
