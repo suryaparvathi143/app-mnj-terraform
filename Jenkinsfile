@@ -18,12 +18,7 @@ pipeline {
             steps {
                 echo 'Initializing Terraform...'
                 dir("${TF_DIR}") {
-                    withCredentials([
-                        string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
-                    ]) {
-                        sh 'terraform init'
-                    }
+                    sh 'terraform init'
                 }
             }
         }
@@ -32,52 +27,37 @@ pipeline {
             steps {
                 echo 'Validating Terraform code...'
                 dir("${TF_DIR}") {
-                    withCredentials([
-                        string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                        string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
-                    ]) {
-                        sh 'terraform validate'
-                    }
+                    sh 'terraform validate'
                 }
             }
         }
-stage('Plan Infrastructure') {
-    steps {
-        echo 'Planning Terraform infrastructure changes...'
-        dir("${TF_DIR}") {
-            withCredentials([
-                string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
-            ]) {
-                sh '''
-                    export TF_VAR_aws_access_key=$AWS_ACCESS_KEY_ID
-                    export TF_VAR_aws_secret_key=$AWS_SECRET_ACCESS_KEY
-                    terraform plan -out=tfplan
-                '''
+
+        stage('Plan Infrastructure') {
+            steps {
+                echo 'Planning Terraform infrastructure changes...'
+                dir("${TF_DIR}") {
+                    sh '''
+                        export TF_VAR_aws_access_key=${AWS_ACCESS_KEY_ID}
+                        export TF_VAR_aws_secret_key=${AWS_SECRET_ACCESS_KEY}
+                        terraform plan -out=tfplan
+                    '''
+                }
             }
         }
-    }
-}
 
-stage('Apply Infrastructure') {
-    steps {
-        input message: 'Apply Terraform changes? (Confirm manually)'
-        echo 'Applying Terraform plan...'
-        dir("${TF_DIR}") {
-            withCredentials([
-                string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
-            ]) {
-                sh '''
-                    export TF_VAR_aws_access_key=$AWS_ACCESS_KEY_ID
-                    export TF_VAR_aws_secret_key=$AWS_SECRET_ACCESS_KEY
-                    terraform apply -auto-approve tfplan
-                '''
+        stage('Apply Infrastructure') {
+            steps {
+                input message: 'Apply Terraform changes? (Confirm manually)'
+                echo 'Applying Terraform plan...'
+                dir("${TF_DIR}") {
+                    sh '''
+                        export TF_VAR_aws_access_key=${AWS_ACCESS_KEY_ID}
+                        export TF_VAR_aws_secret_key=${AWS_SECRET_ACCESS_KEY}
+                        terraform apply -auto-approve tfplan
+                    '''
+                }
             }
         }
-    }
-}
-
     }
 
     post {
