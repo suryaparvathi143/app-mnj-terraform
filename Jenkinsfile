@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+		PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
         // AWS credentials ID configured in Jenkins
         AWS_CREDENTIALS = credentials('aws-credentials')
         // Your Terraform directory path in project
