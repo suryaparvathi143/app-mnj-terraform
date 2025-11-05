@@ -21,11 +21,3 @@ variable "s3_filter_suffix" {
   type        = string
   default     = ""
 }
-
-variable "aws_access_key" {
-  type = string
-}
-
-variable "aws_secret_key" {
-  type = string
-}

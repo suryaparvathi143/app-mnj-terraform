@@ -40,8 +40,8 @@ stage('Plan Infrastructure') {
                 string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
             ]) {
                 sh '''
-                    export TF_VAR_aws_access_key=$AWS_ACCESS_KEY_ID
-                    export TF_VAR_aws_secret_key=$AWS_SECRET_ACCESS_KEY
+                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                     terraform plan -out=tfplan
                 '''
             }
@@ -59,13 +59,15 @@ stage('Apply Infrastructure') {
                 string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
             ]) {
                 sh '''
-                    export TF_VAR_aws_access_key=$AWS_ACCESS_KEY_ID
-                    export TF_VAR_aws_secret_key=$AWS_SECRET_ACCESS_KEY
+                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                     terraform apply -auto-approve tfplan
                 '''
             }
         }
     }
+}
+
 }
 
 
