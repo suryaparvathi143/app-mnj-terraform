@@ -4,7 +4,7 @@ pipeline {
     environment {
         // AWS credentials ID configured in Jenkins
         AWS_CREDENTIALS = credentials('aws-credentials')
-        // Your Terraform directory path
+        // Your Terraform directory path in project
         TF_DIR = './terraform'
     }
 
