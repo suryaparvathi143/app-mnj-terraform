@@ -1,23 +1,16 @@
 variable "aws_region" {
-  description = "AWS region to deploy to"
+  description = "AWS region"
   type        = string
   default     = "us-east-1"
 }
 
-variable "project_prefix" {
-  description = "Prefix used for naming resources"
+variable "aws_profile" {
+  description = "AWS CLI profile name"
   type        = string
-  default     = "app-mnj"
+  default     = "default"
 }
 
-variable "s3_events" {
-  description = "List of S3 events that will notify SQS (e.g. s3:ObjectCreated:*)"
-  type        = list(string)
-  default     = ["s3:ObjectCreated:*"]
-}
-
-variable "s3_filter_suffix" {
-  description = "Optional suffix filter for S3 events (empty -> no filter). Example: .csv"
+variable "bucket_name" {
+  description = "S3 bucket name"
   type        = string
-  default     = ""
 }
