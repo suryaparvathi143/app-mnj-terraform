@@ -23,7 +23,7 @@ pipeline {
                 ]]) {
                     dir("${TF_DIR}") {
                         sh '''
-                            terraform init
+                            terraform init -upgrade
                             terraform apply -auto-approve \
                             -var "bucket_name=${BUCKET_NAME}" \
                             -var "aws_region=${AWS_REGION}"
