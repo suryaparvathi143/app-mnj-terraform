@@ -3,6 +3,5 @@ resource "aws_s3_bucket" "springboot_bucket" {
 
   tags = {
     Name        = "springboot-terraform-bucket"
-    Environment = "Dev"
   }
 }
