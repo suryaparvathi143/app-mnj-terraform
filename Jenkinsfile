@@ -17,7 +17,7 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-            withCredentials([[
+   withCredentials([[
     $class: 'AmazonWebServicesCredentialsBinding',
     credentialsId: 'aws-creds'
 ]]) {
