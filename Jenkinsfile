@@ -9,13 +9,13 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo 'Cloning repository...'
-                git branch: 'main', url: 'https://github.com/your-username/your-repo.git'
+                git branch: 'main', url: 'https://github.com/suryaparvathi143/app-mnj-terraform.git'
             }
         }
 
         stage('Terraform Init & Apply') {
             steps {
-                withAWS(credentials: 'aws-jenkins-creds', region: 'us-east-1') {
+                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
                     dir("${TF_DIR}") {
                         sh 'terraform init'
                         sh 'terraform apply -auto-approve -var bucket_name=jenkins-bucket-20 -var aws_region=us-east-1'
