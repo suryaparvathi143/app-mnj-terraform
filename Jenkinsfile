@@ -17,19 +17,22 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds'
-                ]]) {
-                    dir("${TF_DIR}") {
-                        sh '''
-                            terraform init -upgrade
-                            terraform apply -auto-approve \
-                            -var "bucket_name=${BUCKET_NAME}" \
-                            -var "aws_region=${AWS_REGION}"
-                        '''
-                    }
-                }
+            withCredentials([[
+    $class: 'AmazonWebServicesCredentialsBinding',
+    credentialsId: 'aws-creds'
+]]) {
+    dir("${TF_DIR}") {
+        sh '''
+            terraform init -upgrade
+            terraform apply -auto-approve \
+              -var "bucket_name=${BUCKET_NAME}" \
+              -var "aws_region=${AWS_REGION}" \
+              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+        '''
+    }
+}
+
             }
         }
     }
