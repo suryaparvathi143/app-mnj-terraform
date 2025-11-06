@@ -3,22 +3,31 @@ pipeline {
 
     environment {
         TF_DIR = './terraform'
+        BUCKET_NAME = "jenkins-bucket-${BUILD_NUMBER}"
+        AWS_REGION = "us-east-1"
+        PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo 'Cloning repository...'
                 git branch: 'main', url: 'https://github.com/suryaparvathi143/app-mnj-terraform.git'
             }
         }
 
-        stage('Terraform Init & Apply') {
+        stage('Terraform Apply') {
             steps {
-                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
                     dir("${TF_DIR}") {
-                        sh 'terraform init'
-                        sh 'terraform apply -auto-approve -var bucket_name=jenkins-bucket-20 -var aws_region=us-east-1'
+                        sh '''
+                            terraform init -upgrade
+                            terraform apply -auto-approve \
+                            -var "bucket_name=${BUCKET_NAME}" \
+                            -var "aws_region=${AWS_REGION}"
+                        '''
                     }
                 }
             }
@@ -27,10 +36,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ S3 bucket created successfully!'
+            echo "✅ Bucket created successfully in AWS!"
         }
         failure {
-            echo '❌ Terraform apply failed!'
+            echo "❌ Terraform apply failed!"
         }
     }
 }
