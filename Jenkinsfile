@@ -57,18 +57,20 @@ pipeline {
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        // Plan
+
+                        // Terraform Plan
                         sh """
-                            terraform plan \
-                              -var "bucket_name=${BUCKET_NAME}" \
-                              -var "create_s3=true" \
-                              -var "aws_region=${AWS_REGION}" \
-                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
-                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        terraform plan \
+                          -var bucket_name=${BUCKET_NAME} \
+                          -var create_s3=true \
+                          -var aws_region=${AWS_REGION} \
+                          -var aws_access_key=\$AWS_ACCESS_KEY_ID \
+                          -var aws_secret_key=\$AWS_SECRET_ACCESS_KEY
                         """
+
                         // Approval
                         script {
-                            def userInput = input(
+                            def proceed = input(
                                 message: "Do you want to proceed with creating the S3 bucket?",
                                 parameters: [[
                                     $class: 'BooleanParameterDefinition',
@@ -77,18 +79,19 @@ pipeline {
                                     name: 'PROCEED'
                                 ]]
                             )
-                            if (!userInput) {
+                            if (!proceed) {
                                 error("❌ Pipeline aborted by user.")
                             }
                         }
-                        // Apply
+
+                        // Terraform Apply
                         sh """
-                            terraform apply -auto-approve \
-                              -var "bucket_name=${BUCKET_NAME}" \
-                              -var "create_s3=true" \
-                              -var "aws_region=${AWS_REGION}" \
-                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
-                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        terraform apply -auto-approve \
+                          -var bucket_name=${BUCKET_NAME} \
+                          -var create_s3=true \
+                          -var aws_region=${AWS_REGION} \
+                          -var aws_access_key=\$AWS_ACCESS_KEY_ID \
+                          -var aws_secret_key=\$AWS_SECRET_ACCESS_KEY
                         """
                     }
                 }
@@ -103,17 +106,20 @@ pipeline {
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        // Plan
+
+                        // Terraform Plan
                         sh """
-                            terraform plan \
-                              -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
-                              -var "aws_region=${AWS_REGION}" \
-                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
-                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        terraform plan \
+                          -var sqs_queue_name=${SQS_QUEUE_NAME} \
+                          -var create_sqs=true \
+                          -var aws_region=${AWS_REGION} \
+                          -var aws_access_key=\$AWS_ACCESS_KEY_ID \
+                          -var aws_secret_key=\$AWS_SECRET_ACCESS_KEY
                         """
+
                         // Approval
                         script {
-                            def userInput = input(
+                            def proceed = input(
                                 message: "Do you want to proceed with creating the SQS queue?",
                                 parameters: [[
                                     $class: 'BooleanParameterDefinition',
@@ -122,17 +128,19 @@ pipeline {
                                     name: 'PROCEED'
                                 ]]
                             )
-                            if (!userInput) {
+                            if (!proceed) {
                                 error("❌ Pipeline aborted by user.")
                             }
                         }
-                        // Apply
+
+                        // Terraform Apply
                         sh """
-                            terraform apply -auto-approve \
-                              -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
-                              -var "aws_region=${AWS_REGION}" \
-                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
-                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        terraform apply -auto-approve \
+                          -var sqs_queue_name=${SQS_QUEUE_NAME} \
+                          -var create_sqs=true \
+                          -var aws_region=${AWS_REGION} \
+                          -var aws_access_key=\$AWS_ACCESS_KEY_ID \
+                          -var aws_secret_key=\$AWS_SECRET_ACCESS_KEY
                         """
                     }
                 }
