@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         TF_DIR = './terraform'
-        BUCKET_NAME = "app-s3-mnj"
+        BUCKET_NAME = "app-s3-mnj-bucket"
         SQS_QUEUE_NAME = "app-sqs-mnj"
         AWS_REGION = "us-east-1"
         PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
