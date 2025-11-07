@@ -3,6 +3,11 @@ variable "bucket_name" {
   type        = string
 }
 
+variable "sqs_queue_name" {
+  description = "Name of the SQS queue to be created"
+  type        = string
+}
+
 variable "aws_region" {
   description = "AWS region where resources will be created"
   type        = string
@@ -21,14 +26,8 @@ variable "aws_secret_key" {
   sensitive   = true
 }
 
-variable "sqs_queue_name" {
-  description = "Name of the SQS queue to be created"
-  type        = string
-  default     = "app-sqs-mnj"
-}
-
 variable "create_s3" {
-  description = "Flag to control S3 bucket creation (true/false)"
+  description = "Flag to control S3 bucket creation"
   type        = bool
   default     = true
 }
