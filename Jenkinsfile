@@ -63,14 +63,14 @@ pipeline {
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        sh """
+                        sh '''
                             terraform plan \
                               -var "bucket_name=${BUCKET_NAME}" \
                               -var "create_s3=true" \
                               -var "aws_region=${AWS_REGION}" \
                               -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
                               -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
-                        """
+                        '''
                     }
                 }
             }
@@ -103,14 +103,14 @@ pipeline {
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        sh """
+                        sh '''
                             terraform apply -auto-approve \
                               -var "bucket_name=${BUCKET_NAME}" \
                               -var "create_s3=true" \
                               -var "aws_region=${AWS_REGION}" \
                               -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
                               -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
-                        """
+                        '''
                     }
                 }
             }
@@ -124,14 +124,14 @@ pipeline {
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        sh """
+                        sh '''
                             terraform plan \
                               -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
                               -var "create_s3=false" \
                               -var "aws_region=${AWS_REGION}" \
                               -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
                               -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
-                        """
+                        '''
                     }
                 }
             }
@@ -162,14 +162,14 @@ pipeline {
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        sh """
+                        sh '''
                             terraform apply -auto-approve \
                               -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
                               -var "create_s3=false" \
                               -var "aws_region=${AWS_REGION}" \
                               -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
                               -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
-                        """
+                        '''
                     }
                 }
             }
