@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         TF_DIR = './terraform'
-        BUCKET_NAME = "app-s3-mnj-bucket"
+        BUCKET_NAME = "app-s3-mnj"
         SQS_QUEUE_NAME = "app-sqs-mnj"
         AWS_REGION = "us-east-1"
         PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
@@ -11,23 +11,29 @@ pipeline {
 
     stages {
 
-        // Stage 1: Checkout Code
+        // --- Stage 1: Checkout Code ---
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/suryaparvathi143/app-mnj-terraform.git'
             }
         }
 
-        // Stage 2: Terraform Init
+        // --- Stage 2: Terraform Init ---
         stage('Terraform Init') {
             steps {
                 dir("${TF_DIR}") {
-                    sh 'terraform init -upgrade'
+                    sh '''
+                        if ! command -v aws &> /dev/null; then
+                            echo "Installing AWS CLI..."
+                            sudo apt-get update -y && sudo apt-get install -y awscli
+                        fi
+                        terraform init -upgrade
+                    '''
                 }
             }
         }
 
-        // Stage 3: Check if S3 Bucket Exists
+        // --- Stage 3: Check if S3 Bucket Exists ---
         stage('Check S3 Bucket') {
             steps {
                 script {
@@ -48,39 +54,37 @@ pipeline {
             }
         }
 
-        // Stage 4: Terraform Plan
-        stage('Terraform Plan') {
+        // --- Stage 4: Terraform Plan (S3) ---
+        stage('Terraform Plan - S3') {
+            when { expression { env.CREATE_S3 == "true" } }
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        script {
-                            def planCommand = """
-                                terraform plan \
-                                  -var "bucket_name=${BUCKET_NAME}" \
-                                  -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
-                                  -var "aws_region=${AWS_REGION}" \
-                                  -var "create_s3=${CREATE_S3}" \
-                                  -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
-                                  -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
-                            """
-                            sh planCommand
-                        }
+                        sh """
+                            terraform plan \
+                              -var "bucket_name=${BUCKET_NAME}" \
+                              -var "create_s3=true" \
+                              -var "aws_region=${AWS_REGION}" \
+                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        """
                     }
                 }
             }
         }
 
-        // Stage 5: Manual Approval
-        stage('Approval for Apply') {
+        // --- Stage 5: Approval for S3 Creation ---
+        stage('Approval - Create S3 Bucket') {
+            when { expression { env.CREATE_S3 == "true" } }
             steps {
                 script {
                     def userInput = input(
-                        message: "Do you want to proceed with applying Terraform changes?",
+                        message: "Do you want to proceed with creating the S3 bucket?",
                         parameters: [
-                            [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Check YES to proceed', name: 'PROCEED']
+                            [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Check YES to create S3 bucket', name: 'PROCEED']
                         ]
                     )
                     if (!userInput) {
@@ -90,26 +94,82 @@ pipeline {
             }
         }
 
-        // Stage 6: Terraform Apply
-        stage('Terraform Apply') {
+        // --- Stage 6: Terraform Apply (S3) ---
+        stage('Terraform Apply - S3') {
+            when { expression { env.CREATE_S3 == "true" } }
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-creds'
                 ]]) {
                     dir("${TF_DIR}") {
-                        script {
-                            def applyCommand = """
-                                terraform apply -auto-approve \
-                                  -var "bucket_name=${BUCKET_NAME}" \
-                                  -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
-                                  -var "aws_region=${AWS_REGION}" \
-                                  -var "create_s3=${CREATE_S3}" \
-                                  -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
-                                  -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
-                            """
-                            sh applyCommand
-                        }
+                        sh """
+                            terraform apply -auto-approve \
+                              -var "bucket_name=${BUCKET_NAME}" \
+                              -var "create_s3=true" \
+                              -var "aws_region=${AWS_REGION}" \
+                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        """
+                    }
+                }
+            }
+        }
+
+        // --- Stage 7: Terraform Plan (SQS) ---
+        stage('Terraform Plan - SQS') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    dir("${TF_DIR}") {
+                        sh """
+                            terraform plan \
+                              -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
+                              -var "create_s3=false" \
+                              -var "aws_region=${AWS_REGION}" \
+                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        """
+                    }
+                }
+            }
+        }
+
+        // --- Stage 8: Approval for SQS Creation ---
+        stage('Approval - Create SQS Queue') {
+            steps {
+                script {
+                    def userInput = input(
+                        message: "Do you want to proceed with creating the SQS queue?",
+                        parameters: [
+                            [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Check YES to create SQS queue', name: 'PROCEED']
+                        ]
+                    )
+                    if (!userInput) {
+                        error("❌ Pipeline aborted by user.")
+                    }
+                }
+            }
+        }
+
+        // --- Stage 9: Terraform Apply (SQS) ---
+        stage('Terraform Apply - SQS') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    dir("${TF_DIR}") {
+                        sh """
+                            terraform apply -auto-approve \
+                              -var "sqs_queue_name=${SQS_QUEUE_NAME}" \
+                              -var "create_s3=false" \
+                              -var "aws_region=${AWS_REGION}" \
+                              -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+                              -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+                        """
                     }
                 }
             }
@@ -118,10 +178,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Terraform apply completed successfully! S3 and SQS are configured."
+            echo "✅ Terraform pipeline completed successfully! S3 and SQS setup finished."
         }
         failure {
-            echo "❌ Terraform pipeline failed."
+            echo "❌ Terraform pipeline failed!"
         }
     }
 }
