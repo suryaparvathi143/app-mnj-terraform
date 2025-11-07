@@ -2,7 +2,9 @@
 resource "aws_s3_bucket" "app_bucket" {
   count  = var.create_s3 ? 1 : 0
   bucket = var.bucket_name
-
+  lifecycle {
+    prevent_destroy = true
+  }
   tags = {
     Name        = var.bucket_name
     Environment = "dev"
