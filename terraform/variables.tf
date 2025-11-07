@@ -20,3 +20,15 @@ variable "aws_secret_key" {
   type        = string
   sensitive   = true
 }
+
+variable "sqs_queue_name" {
+  description = "Name of the SQS queue to be created"
+  type        = string
+  default     = "app-sqs-mnj"
+}
+
+variable "create_s3" {
+  description = "Flag to control S3 bucket creation (true/false)"
+  type        = bool
+  default     = true
+}
