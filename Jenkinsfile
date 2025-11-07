@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         TF_DIR = './terraform'
-        BUCKET_NAME = "jenkins-bucket-${BUILD_NUMBER}"
+        BUCKET_NAME = "app-s3-mnj"
         AWS_REGION = "us-east-1"
         PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
     }
